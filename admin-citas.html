@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -306,49 +308,41 @@
         </div>
     </div>
 
+    
     <script>
-        // DATOS DE PRUEBA
-        const appointments = [
-    {
-        firstName: "María",
-        lastName: "López",
-        email: "maria@email.com",
-        phone: "787-555-1234",
-        campus: "Recinto de Gurabo",
-        appointmentDate: "2026-03-25",
-        appointmentTime: "09:00",
-        serviceMethod: "Presencial",
-        serviceType: "redaccion-resume",
-        participantType: "new",
-        status: "scheduled"
-    },
-    {
-        firstName: "José",
-        lastName: "Martínez",
-        email: "jose@email.com",
-        phone: "787-555-5678",
-        campus: "Centro Universitario de Ponce",
-        appointmentDate: "2026-03-25",
-        appointmentTime: "10:30",
-        serviceMethod: "Telefono",
-        serviceType: "orientacion-manpower",
-        participantType: "returning",
-        status: "scheduled"
-    },
-    {
-        firstName: "Andrea",
-        lastName: "Rivera",
-        email: "andrea@email.com",
-        phone: "787-555-9999",
-        campus: "Centro Universitario de Yabucoa",
-        appointmentDate: "2026-04-22",
-        appointmentTime: "Por definir",
-        serviceMethod: "Presencial",
-        serviceType: "oportunidades-empleo",
-        participantType: "new",
-        status: "waitlist"
-    }
-];
+       const firebaseConfig = {
+    apiKey: "AIzaSyAHEyhKMPyoYyGAK4evC6T8KknS06u23f8",
+    authDomain: "sistema-cita-manpowergroup.firebaseapp.com",
+    projectId: "sistema-cita-manpowergroup",
+    storageBucket: "sistema-cita-manpowergroup.firebasestorage.app",
+    messagingSenderId: "284482299414",
+    appId: "1:284482299414:web:552a4ba8daac946abb7737",
+    measurementId: "G-7HJWCRZMXX"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let appointments = [];
+
+function loadAppointments() {
+    db.collection("appointments").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        appointments = [];
+
+        snapshot.forEach((doc) => {
+            appointments.push({
+                docId: doc.id,
+                ...doc.data()
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+    loadAppointments();
+});
+    }, (error) => {
+        console.error("Error cargando citas:", error);
+    });
+}
 
         function formatDate(dateString) {
             if (!dateString || dateString === 'Por definir') return 'Por definir';
@@ -394,10 +388,10 @@ function updateStats(data) {
     const telefono = data.filter(item => item.serviceMethod === "Telefono").length;
     const waitlist = data.filter(item => item.status === "waitlist").length;
 
-    document.getElementById('totalAppointments').textContent = total;
-    document.getElementById('totalPresencial').textContent = presencial;
-    document.getElementById('totalTelefono').textContent = telefono;
-    document.getElementById('totalWaitlist').textContent = waitlist;
+    document.getElementById("totalAppointments").textContent = total;
+    document.getElementById("totalPresencial").textContent = presencial;
+    document.getElementById("totalTelefono").textContent = telefono;
+    document.getElementById("totalWaitlist").textContent = waitlist;
 }
 
         function renderAppointments(data) {
