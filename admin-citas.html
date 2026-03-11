@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Interno de Citas - UAGM</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 30px;
+            background: white;
+            border-bottom: 4px solid #c8102e;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .logo-left img,
+        .logo-right img {
+            height: 60px;
+        }
+
+        .logo-left,
+        .logo-right {
+            flex: 1;
+        }
+
+        .logo-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .header-title {
+            flex: 2;
+            text-align: center;
+            color: #003366;
+        }
+
+        .header-title h1 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .header-title p {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .panel-card {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        .panel-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #c8102e;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-cards{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.stat-card{
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e5e7eb;
+    border-left: 5px solid #c8102e;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.stat-card h3{
+    font-size: 30px;
+    color: #003366;
+    margin-bottom: 6px;
+}
+
+.stat-card p{
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+}
+
+@media (max-width: 900px) {
+    .stats-cards{
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .stats-cards{
+        grid-template-columns: 1fr;
+    }
+}
+        .filters {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .filters input,
+        .filters select {
+            padding: 12px 14px;
+            border: 2px solid #d9dee7;
+            border-radius: 10px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .filters input:focus,
+        .filters select:focus {
+            outline: none;
+            border-color: #c8102e;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        thead {
+            background: #003366;
+            color: white;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 12px;
+            border-bottom: 1px solid #e6e9ef;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge-presencial {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-telefono {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-programado {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-espera {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+        }
+
+        @media (max-width: 900px) {
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .header-title h1 {
+                font-size: 20px;
+            }
+
+            .logo-left img,
+            .logo-right img {
+                height: 45px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-bar">
+        <div class="logo-left">
+            <img src="Logo UAGM.png" alt="Logo UAGM">
+        </div>
+
+        <div class="header-title">
+            <h1>Panel Interno de Citas</h1>
+            <p>Oficina de Carreras y Colocaciones - UAGM Recinto de Gurabo</p>
+        </div>
+
+        <div class="logo-right">
+            <img src="ManpowerGroup_Logo.jpg" alt="Logo Manpower">
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="panel-card">
+            <div class="panel-title">
+                <i class="fas fa-calendar-alt"></i>
+                Administración de Citas
+            </div>
+<div class="stats-cards">
+    <div class="stat-card">
+        <h3 id="totalAppointments">0</h3>
+        <p>Total de Citas</p>
+    </div>
+
+    <div class="stat-card">
+        <h3 id="totalPresencial">0</h3>
+        <p>Presenciales</p>
+    </div>
+
+    <div class="stat-card">
+        <h3 id="totalTelefono">0</h3>
+        <p>Vía Teléfono</p>
+    </div>
+
+    <div class="stat-card">
+        <h3 id="totalWaitlist">0</h3>
+        <p>Lista de Espera</p>
+    </div>
+</div>
+
+            <div class="filters">
+                <input type="text" id="searchInput" placeholder="Buscar por nombre o email...">
+                <input type="date" id="dateFilter">
+                <select id="methodFilter">
+                    <option value="">Todos los métodos</option>
+                    <option value="Presencial">Presencial</option>
+                    <option value="Telefono">Vía Teléfono</option>
+                </select>
+                <select id="statusFilter">
+                    <option value="">Todos los estados</option>
+                    <option value="scheduled">Programado</option>
+                    <option value="waitlist">Lista de espera</option>
+                </select>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+    <th>Nombre</th>
+    <th>Email</th>
+    <th>Teléfono</th>
+    <th>Recinto / Centro</th>
+    <th>Fecha</th>
+    <th>Hora</th>
+    <th>Método</th>
+    <th>Servicio</th>
+    <th>Participante</th>
+    <th>Estado</th>
+</tr>
+                    </thead>
+                    <tbody id="appointmentsTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="emptyMessage" class="empty-message" style="display:none;">
+                No se encontraron citas con esos criterios.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATOS DE PRUEBA
+        const appointments = [
+    {
+        firstName: "María",
+        lastName: "López",
+        email: "maria@email.com",
+        phone: "787-555-1234",
+        campus: "Recinto de Gurabo",
+        appointmentDate: "2026-03-25",
+        appointmentTime: "09:00",
+        serviceMethod: "Presencial",
+        serviceType: "redaccion-resume",
+        participantType: "new",
+        status: "scheduled"
+    },
+    {
+        firstName: "José",
+        lastName: "Martínez",
+        email: "jose@email.com",
+        phone: "787-555-5678",
+        campus: "Centro Universitario de Ponce",
+        appointmentDate: "2026-03-25",
+        appointmentTime: "10:30",
+        serviceMethod: "Telefono",
+        serviceType: "orientacion-manpower",
+        participantType: "returning",
+        status: "scheduled"
+    },
+    {
+        firstName: "Andrea",
+        lastName: "Rivera",
+        email: "andrea@email.com",
+        phone: "787-555-9999",
+        campus: "Centro Universitario de Yabucoa",
+        appointmentDate: "2026-04-22",
+        appointmentTime: "Por definir",
+        serviceMethod: "Presencial",
+        serviceType: "oportunidades-empleo",
+        participantType: "new",
+        status: "waitlist"
+    }
+];
+
+        function formatDate(dateString) {
+            if (!dateString || dateString === 'Por definir') return 'Por definir';
+            const [year, month, day] = dateString.split('-');
+            const dateObj = new Date(year, month - 1, day);
+            return dateObj.toLocaleDateString('es-PR', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function formatServiceType(serviceType) {
+            const map = {
+                "orientacion-manpower": "Orientación Manpower",
+                "redaccion-resume": "Redacción de Résumé",
+                "oportunidades-empleo": "Oportunidades de Empleo"
+            };
+            return map[serviceType] || serviceType;
+        }
+
+        function formatParticipantType(participantType) {
+            return participantType === "new" ? "Nuevo" : "Seguimiento";
+        }
+
+       function getMethodBadge(method) {
+    if (method === "Presencial") {
+        return `<span class="badge badge-presencial">Presencial</span>`;
+    }
+    return `<span class="badge badge-telefono">Vía Teléfono</span>`;
+}
+
+function getStatusBadge(status) {
+    if (status === "scheduled") {
+        return `<span class="badge badge-programado">Programado</span>`;
+    }
+    return `<span class="badge badge-espera">Lista de espera</span>`;
+}
+
+function updateStats(data) {
+    const total = data.length;
+    const presencial = data.filter(item => item.serviceMethod === "Presencial").length;
+    const telefono = data.filter(item => item.serviceMethod === "Telefono").length;
+    const waitlist = data.filter(item => item.status === "waitlist").length;
+
+    document.getElementById('totalAppointments').textContent = total;
+    document.getElementById('totalPresencial').textContent = presencial;
+    document.getElementById('totalTelefono').textContent = telefono;
+    document.getElementById('totalWaitlist').textContent = waitlist;
+}
+
+        function renderAppointments(data) {
+            const tbody = document.getElementById('appointmentsTableBody');
+            const emptyMessage = document.getElementById('emptyMessage');
+
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                emptyMessage.style.display = 'block';
+                return;
+            }
+
+            emptyMessage.style.display = 'none';
+
+            data.forEach(appointment => {
+
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+        <td>${appointment.firstName} ${appointment.lastName}</td>
+        <td>${appointment.email}</td>
+        <td>${appointment.phone}</td>
+        <td>${appointment.campus || 'No aplica'}</td>
+        <td>${formatDate(appointment.appointmentDate)}</td>
+        <td>${appointment.appointmentTime}</td>
+        <td>${getMethodBadge(appointment.serviceMethod)}</td>
+        <td>${formatServiceType(appointment.serviceType)}</td>
+        <td>${formatParticipantType(appointment.participantType)}</td>
+        <td>${getStatusBadge(appointment.status)}</td>
+    `;
+
+    tbody.appendChild(row);
+
+});
+
+updateStats(data);
+
+}
+        function filterAppointments() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const date = document.getElementById('dateFilter').value;
+            const method = document.getElementById('methodFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            const filtered = appointments.filter(item => {
+                const fullName = `${item.firstName} ${item.lastName}`.toLowerCase();
+                const email = item.email.toLowerCase();
+
+                const matchesSearch = fullName.includes(search) || email.includes(search);
+                const matchesDate = !date || item.appointmentDate === date;
+                const matchesMethod = !method || item.serviceMethod === method;
+                const matchesStatus = !status || item.status === status;
+
+                return matchesSearch && matchesDate && matchesMethod && matchesStatus;
+            });
+
+            renderAppointments(filtered);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', filterAppointments);
+        document.getElementById('dateFilter').addEventListener('change', filterAppointments);
+        document.getElementById('methodFilter').addEventListener('change', filterAppointments);
+        document.getElementById('statusFilter').addEventListener('change', filterAppointments);
+
+        renderAppointments(appointments);
+    </script>
+
+</body>
+</html>
