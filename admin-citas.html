@@ -235,16 +235,30 @@
         </div>
 
         <div class="logo-right">
-            <img src="ManpowerGroup_Logo.jpg" alt="Logo Manpower">
+            <img src="ManpowerGroup_Logo.JPG" alt="Logo Manpower">
         </div>
     </header>
 
     <div class="container">
         <div class="panel-card">
-            <div class="panel-title">
-                <i class="fas fa-calendar-alt"></i>
-                Administración de Citas
-            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:15px; flex-wrap:wrap; margin-bottom:20px;">
+    <div class="panel-title" style="margin-bottom:0;">
+        <i class="fas fa-calendar-alt"></i>
+        Administración de Citas
+    </div>
+
+    <button id="exportCsvBtn" style="
+        background: linear-gradient(135deg, #c8102e 0%, #8b0b1f 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 18px;
+        font-weight: 700;
+        cursor: pointer;
+    ">
+        <i class="fas fa-file-csv"></i> Exportar a Excel
+    </button>
+</div>
 <div class="stats-cards">
     <div class="stat-card">
         <h3 id="totalAppointments">0</h3>
@@ -309,8 +323,8 @@
     </div>
 
     
-    <script>
-       const firebaseConfig = {
+   <script>
+const firebaseConfig = {
     apiKey: "AIzaSyAHEyhKMPyoYyGAK4evC6T8KknS06u23f8",
     authDomain: "sistema-cita-manpowergroup.firebaseapp.com",
     projectId: "sistema-cita-manpowergroup",
@@ -326,49 +340,52 @@ const db = firebase.firestore();
 let appointments = [];
 
 function loadAppointments() {
-    db.collection("appointments").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-        appointments = [];
+    db.collection("appointments")
+        .orderBy("createdAt", "desc")
+        .onSnapshot((snapshot) => {
+            appointments = [];
 
-        snapshot.forEach((doc) => {
-            appointments.push({
-                docId: doc.id,
-                ...doc.data()
+            snapshot.forEach((doc) => {
+                appointments.push({
+                    docId: doc.id,
+                    ...doc.data()
+                });
             });
-        });
 
-        document.addEventListener("DOMContentLoaded", function () {
-    loadAppointments();
-});
-    }, (error) => {
-        console.error("Error cargando citas:", error);
+               updateStats(appointments);
+
+        }, (error) => {
+            console.error("Error cargando citas:", error);
+        });
+}
+
+function formatDate(dateString) {
+    if (!dateString || dateString === "Por definir") return "Por definir";
+
+    const [year, month, day] = dateString.split("-");
+    const dateObj = new Date(year, month - 1, day);
+
+    return dateObj.toLocaleDateString("es-PR", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
     });
 }
 
-        function formatDate(dateString) {
-            if (!dateString || dateString === 'Por definir') return 'Por definir';
-            const [year, month, day] = dateString.split('-');
-            const dateObj = new Date(year, month - 1, day);
-            return dateObj.toLocaleDateString('es-PR', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
+function formatServiceType(serviceType) {
+    const map = {
+        "orientacion-manpower": "Orientación Manpower",
+        "redaccion-resume": "Redacción de Résumé",
+        "oportunidades-empleo": "Oportunidades de Empleo"
+    };
+    return map[serviceType] || serviceType;
+}
 
-        function formatServiceType(serviceType) {
-            const map = {
-                "orientacion-manpower": "Orientación Manpower",
-                "redaccion-resume": "Redacción de Résumé",
-                "oportunidades-empleo": "Oportunidades de Empleo"
-            };
-            return map[serviceType] || serviceType;
-        }
+function formatParticipantType(participantType) {
+    return participantType === "new" ? "Nuevo" : "Seguimiento";
+}
 
-        function formatParticipantType(participantType) {
-            return participantType === "new" ? "Nuevo" : "Seguimiento";
-        }
-
-       function getMethodBadge(method) {
+function getMethodBadge(method) {
     if (method === "Presencial") {
         return `<span class="badge badge-presencial">Presencial</span>`;
     }
@@ -394,71 +411,175 @@ function updateStats(data) {
     document.getElementById("totalWaitlist").textContent = waitlist;
 }
 
-        function renderAppointments(data) {
-            const tbody = document.getElementById('appointmentsTableBody');
-            const emptyMessage = document.getElementById('emptyMessage');
+function renderAppointments(data) {
+    const tbody = document.getElementById("appointmentsTableBody");
+    const emptyMessage = document.getElementById("emptyMessage");
 
-            tbody.innerHTML = '';
+    tbody.innerHTML = "";
 
-            if (data.length === 0) {
-                emptyMessage.style.display = 'block';
-                return;
-            }
+    if (data.length === 0) {
+        emptyMessage.style.display = "block";
+        updateStats(data);
+        return;
+    }
 
-            emptyMessage.style.display = 'none';
+    emptyMessage.style.display = "none";
 
-            data.forEach(appointment => {
+    data.forEach(appointment => {
+        const row = document.createElement("tr");
 
-    const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${appointment.firstName || ""} ${appointment.lastName || ""}</td>
+            <td>${appointment.email || ""}</td>
+            <td>${appointment.phone || ""}</td>
+            <td>${appointment.campus || "No aplica"}</td>
+            <td>${formatDate(appointment.appointmentDate)}</td>
+            <td>${appointment.appointmentTime || "Por definir"}</td>
+            <td>${getMethodBadge(appointment.serviceMethod)}</td>
+            <td>${formatServiceType(appointment.serviceType)}</td>
+            <td>${formatParticipantType(appointment.participantType)}</td>
+            <td>${getStatusBadge(appointment.status)}</td>
+        `;
 
-    row.innerHTML = `
-        <td>${appointment.firstName} ${appointment.lastName}</td>
-        <td>${appointment.email}</td>
-        <td>${appointment.phone}</td>
-        <td>${appointment.campus || 'No aplica'}</td>
-        <td>${formatDate(appointment.appointmentDate)}</td>
-        <td>${appointment.appointmentTime}</td>
-        <td>${getMethodBadge(appointment.serviceMethod)}</td>
-        <td>${formatServiceType(appointment.serviceType)}</td>
-        <td>${formatParticipantType(appointment.participantType)}</td>
-        <td>${getStatusBadge(appointment.status)}</td>
-    `;
+        tbody.appendChild(row);
+    });
 
-    tbody.appendChild(row);
-
-});
-
-updateStats(data);
-
+    updateStats(data);
 }
-        function filterAppointments() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const date = document.getElementById('dateFilter').value;
-            const method = document.getElementById('methodFilter').value;
-            const status = document.getElementById('statusFilter').value;
 
-            const filtered = appointments.filter(item => {
-                const fullName = `${item.firstName} ${item.lastName}`.toLowerCase();
-                const email = item.email.toLowerCase();
+function filterAppointments() {
+    function getFilteredAppointments() {
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const date = document.getElementById("dateFilter").value;
+    const method = document.getElementById("methodFilter").value;
+    const status = document.getElementById("statusFilter").value;
 
-                const matchesSearch = fullName.includes(search) || email.includes(search);
-                const matchesDate = !date || item.appointmentDate === date;
-                const matchesMethod = !method || item.serviceMethod === method;
-                const matchesStatus = !status || item.status === status;
+    return appointments.filter(item => {
+        const fullName = `${item.firstName || ""} ${item.lastName || ""}`.toLowerCase();
+        const email = (item.email || "").toLowerCase();
 
-                return matchesSearch && matchesDate && matchesMethod && matchesStatus;
-            });
+        const matchesSearch = fullName.includes(search) || email.includes(search);
+        const matchesDate = !date || item.appointmentDate === date;
+        const matchesMethod = !method || item.serviceMethod === method;
+        const matchesStatus = !status || item.status === status;
 
-            renderAppointments(filtered);
-        }
+        return matchesSearch && matchesDate && matchesMethod && matchesStatus;
+    });
+}
 
-        document.getElementById('searchInput').addEventListener('input', filterAppointments);
-        document.getElementById('dateFilter').addEventListener('change', filterAppointments);
-        document.getElementById('methodFilter').addEventListener('change', filterAppointments);
-        document.getElementById('statusFilter').addEventListener('change', filterAppointments);
+function exportAppointmentsToCSV() {
+    const data = getFilteredAppointments();
 
-        renderAppointments(appointments);
-    </script>
+    if (!data.length) {
+        alert("No hay citas para exportar.");
+        return;
+    }
+
+    const headers = [
+        "Nombre",
+        "Apellido",
+        "Email",
+        "Telefono",
+        "Pueblo",
+        "Tipo Participante",
+        "Tipo Estudiante",
+        "Recinto/Centro",
+        "ID Estudiante",
+        "Concentracion",
+        "Servicio",
+        "Metodo de Servicio",
+        "Fecha",
+        "Hora",
+        "Descripcion",
+        "Estado",
+        "Lista de Espera",
+        "Fecha Creacion"
+    ];
+
+    const rows = data.map(item => [
+        item.firstName || "",
+        item.lastName || "",
+        item.email || "",
+        item.phone || "",
+        item.city || "",
+        item.participantType || "",
+        item.studentType || "",
+        item.campus || "",
+        item.studentId || "",
+        item.concentration || "",
+        formatServiceType(item.serviceType || ""),
+        item.serviceMethod || "",
+        item.appointmentDate || "",
+        item.appointmentTime || "",
+        (item.description || "").replace(/\n/g, " "),
+        item.status || "",
+        item.isWaitlist ? "Si" : "No",
+        item.createdAt || ""
+    ]);
+
+    let csvContent = "\uFEFF";
+    csvContent += headers.join(",") + "\n";
+
+    rows.forEach(row => {
+        const escapedRow = row.map(value => {
+            const str = String(value).replace(/"/g, '""');
+            return `"${str}"`;
+        });
+        csvContent += escapedRow.join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+
+    const now = new Date();
+    const fileDate = now.toISOString().slice(0, 10);
+
+    link.download = `citas_uagm_${fileDate}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const date = document.getElementById("dateFilter").value;
+    const method = document.getElementById("methodFilter").value;
+    const status = document.getElementById("statusFilter").value;
+
+    const filtered = appointments.filter(item => {
+        const fullName = `${item.firstName || ""} ${item.lastName || ""}`.toLowerCase();
+        const email = (item.email || "").toLowerCase();
+
+        const matchesSearch = fullName.includes(search) || email.includes(search);
+        const matchesDate = !date || item.appointmentDate === date;
+        const matchesMethod = !method || item.serviceMethod === method;
+        const matchesStatus = !status || item.status === status;
+
+        return matchesSearch && matchesDate && matchesMethod && matchesStatus;
+    });
+
+    renderAppointments(filtered);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("searchInput").addEventListener("input", filterAppointments);
+    document.getElementById("dateFilter").addEventListener("change", filterAppointments);
+    document.getElementById("methodFilter").addEventListener("change", filterAppointments);
+    document.getElementById("statusFilter").addEventListener("change", filterAppointments);
+
+    loadAppointments();
+    document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("searchInput").addEventListener("input", filterAppointments);
+    document.getElementById("dateFilter").addEventListener("change", filterAppointments);
+    document.getElementById("methodFilter").addEventListener("change", filterAppointments);
+    document.getElementById("statusFilter").addEventListener("change", filterAppointments);
+    document.getElementById("exportCsvBtn").addEventListener("click", exportAppointmentsToCSV);
+
+    loadAppointments();
+});
+});
+</script>
 
 </body>
 </html>
