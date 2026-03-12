@@ -280,23 +280,37 @@
     <div class="container">
         <div class="panel-card">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:15px; flex-wrap:wrap; margin-bottom:20px;">
-                <div class="panel-title" style="margin-bottom:0;">
-                    <i class="fas fa-calendar-alt"></i>
-                    Administración de Citas
-                </div>
+    <div class="panel-title" style="margin-bottom:0;">
+        <i class="fas fa-calendar-alt"></i>
+        Administración de Citas
+    </div>
 
-                <button id="exportCsvBtn" style="
-                    background: linear-gradient(135deg, #c8102e 0%, #8b0b1f 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 10px;
-                    padding: 12px 18px;
-                    font-weight: 700;
-                    cursor: pointer;
-                ">
-                    <i class="fas fa-file-csv"></i> Exportar a Excel
-                </button>
-            </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="exportCsvBtn" style="
+            background: linear-gradient(135deg, #c8102e 0%, #8b0b1f 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-weight: 700;
+            cursor: pointer;
+        ">
+            <i class="fas fa-file-csv"></i> Exportar a Excel
+        </button>
+
+        <button id="logoutBtn" style="
+            background: #003366;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-weight: 700;
+            cursor: pointer;
+        ">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </button>
+    </div>
+</div>
 
             <div class="stats-cards">
                 <div class="stat-card">
@@ -385,6 +399,9 @@
     </div>
 
     <script>
+       if (localStorage.getItem("adminLoggedIn") !== "true") {
+    window.location.href = "login.html";
+} 
         const firebaseConfig = {
             apiKey: "AIzaSyAHEyhKMPyoYyGAK4evC6T8KknS06u23f8",
             authDomain: "sistema-cita-manpowergroup.firebaseapp.com",
@@ -764,15 +781,20 @@ let dateChart = null;
             URL.revokeObjectURL(url);
         }
 
+        function logout() {
+    localStorage.removeItem("adminLoggedIn");
+    window.location.href = "login.html";
+}
         document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById("searchInput").addEventListener("input", filterAppointments);
-            document.getElementById("dateFilter").addEventListener("change", filterAppointments);
-            document.getElementById("methodFilter").addEventListener("change", filterAppointments);
-            document.getElementById("statusFilter").addEventListener("change", filterAppointments);
-            document.getElementById("exportCsvBtn").addEventListener("click", exportAppointmentsToCSV);
+    document.getElementById("searchInput").addEventListener("input", filterAppointments);
+    document.getElementById("dateFilter").addEventListener("change", filterAppointments);
+    document.getElementById("methodFilter").addEventListener("change", filterAppointments);
+    document.getElementById("statusFilter").addEventListener("change", filterAppointments);
+    document.getElementById("exportCsvBtn").addEventListener("click", exportAppointmentsToCSV);
+    document.getElementById("logoutBtn").addEventListener("click", logout);
 
-            loadAppointments();
-        });
+    loadAppointments();
+});
     </script>
 
 </body>
