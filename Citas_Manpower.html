@@ -1367,8 +1367,8 @@ async function submitAppointment() {
     detailsHTML += `
         📅 ${displayDate}<br>
         🕒 ${displayTime}<br>
-        💻 Método de servicio: <strong>${appointmentData.serviceMethod}</strong><br>
-    `;
+         💻 Método de servicio: <strong>${appointmentData.serviceMethod === 'Presencial' ? 'Presencial' : 'Vía Teléfono'}</strong><br>
+`;
 } else {
     detailsHTML += `
         <br><strong>⏳ Estás en lista de espera</strong><br>
