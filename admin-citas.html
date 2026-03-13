@@ -240,20 +240,22 @@
         .delete-btn:hover {
             background: #8b0b1f;
         }
-.resume-btn {
-    background: #003366;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: 700;
-    display: inline-block;
-}
 
-.resume-btn:hover {
-    background: #002244;
-}
+        .resume-btn {
+            background: #003366;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .resume-btn:hover {
+            background: #002244;
+        }
+
         @media (max-width: 900px) {
             .stats-cards {
                 grid-template-columns: 1fr;
@@ -362,6 +364,16 @@
                     <canvas id="serviceChart"></canvas>
                 </div>
 
+                <div class="chart-card">
+                    <h3>Participantes por Recinto o Centro Universitario</h3>
+                    <canvas id="campusChart"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Participantes por Tipo</h3>
+                    <canvas id="participantTypeChart"></canvas>
+                </div>
+
                 <div class="chart-card full-width">
                     <h3>Tendencia de Citas por Fecha</h3>
                     <canvas id="dateChart"></canvas>
@@ -379,6 +391,7 @@
                 <select id="statusFilter">
                     <option value="">Todos los estados</option>
                     <option value="scheduled">Programado</option>
+                    <option value="waitlist">Lista de espera</option>
                 </select>
             </div>
 
@@ -386,19 +399,19 @@
                 <table>
                     <thead>
                         <tr>
-    <th>Nombre</th>
-    <th>Email</th>
-    <th>Teléfono</th>
-    <th>Recinto / Centro</th>
-    <th>Fecha</th>
-    <th>Hora</th>
-    <th>Método</th>
-    <th>Servicio</th>
-    <th>Participante</th>
-    <th>Résumé</th>
-    <th>Estado</th>
-    <th>Acciones</th>
-</tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Recinto / Centro</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Método</th>
+                            <th>Servicio</th>
+                            <th>Participante</th>
+                            <th>Résumé</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
                     </thead>
                     <tbody id="appointmentsTableBody"></tbody>
                 </table>
@@ -434,6 +447,8 @@
         let methodChart = null;
         let serviceChart = null;
         let dateChart = null;
+        let campusChart = null;
+        let participantTypeChart = null;
 
         function loadAppointments() {
             db.collection("appointments")
@@ -448,9 +463,10 @@
                         });
                     });
 
-                    renderAppointments(appointments);
-                    updateStats(appointments);
-                    renderCharts(appointments);
+                    const filtered = getFilteredAppointments();
+                    renderAppointments(filtered);
+                    updateStats(filtered);
+                    renderCharts(filtered);
 
                 }, (error) => {
                     console.error("Error cargando citas:", error);
@@ -458,7 +474,7 @@
         }
 
         function formatDate(dateString) {
-            if (!dateString) return "";
+            if (!dateString) return "Lista de espera";
 
             const [year, month, day] = dateString.split("-");
             if (!year || !month || !day) return dateString;
@@ -478,11 +494,32 @@
                 "redaccion-resume": "Redacción de Résumé",
                 "oportunidades-empleo": "Oportunidades de Empleo"
             };
-            return map[serviceType] || serviceType;
+            return map[serviceType] || serviceType || "";
         }
 
         function formatParticipantType(participantType) {
             return participantType === "new" ? "Nuevo" : "Seguimiento";
+        }
+
+        function formatStudentType(studentType) {
+            const map = {
+                "student": "Estudiante",
+                "alumni": "Exalumno",
+                "community": "Comunidad"
+            };
+            return map[studentType] || "No definido";
+        }
+
+        function formatCampus(campus, studentType) {
+            if (studentType === "community") return "Comunidad";
+            const map = {
+                "gurabo": "Recinto de Gurabo",
+                "barceloneta": "Centro Universitario de Barceloneta",
+                "cayey": "Centro Universitario de Cayey",
+                "ponce": "Centro Universitario de Ponce",
+                "yabucoa": "Centro Universitario de Yabucoa"
+            };
+            return map[campus] || "No aplica";
         }
 
         function getMethodBadge(method) {
@@ -492,7 +529,10 @@
             return `<span class="badge badge-telefono">Vía Teléfono</span>`;
         }
 
-        function getStatusBadge() {
+        function getStatusBadge(status) {
+            if (status === "waitlist") {
+                return `<span class="badge" style="background:#ffedd5; color:#9a3412;">Lista de espera</span>`;
+            }
             return `<span class="badge badge-programado">Programado</span>`;
         }
 
@@ -515,26 +555,80 @@
             const empleo = data.filter(item => item.serviceType === "oportunidades-empleo").length;
 
             const groupedByDate = {};
-
             data.forEach(item => {
-                const date = item.appointmentDate || "Sin fecha";
+                const date = item.appointmentDate || "Lista de espera";
                 groupedByDate[date] = (groupedByDate[date] || 0) + 1;
             });
 
             const sortedDates = Object.keys(groupedByDate).sort();
             const dateLabels = sortedDates.map(date => {
-                if (date === "Sin fecha") return date;
+                if (date === "Lista de espera") return date;
                 return formatDate(date);
             });
             const dateValues = sortedDates.map(date => groupedByDate[date]);
 
+            const campusCounts = {
+                gurabo: 0,
+                barceloneta: 0,
+                cayey: 0,
+                ponce: 0,
+                yabucoa: 0,
+                comunidad: 0,
+                sinDato: 0
+            };
+
+            data.forEach(item => {
+                const studentType = item.studentType || "";
+                const campus = (item.campus || "").toLowerCase().trim();
+
+                if (studentType === "community") {
+                    campusCounts.comunidad++;
+                } else if (campus === "gurabo") {
+                    campusCounts.gurabo++;
+                } else if (campus === "barceloneta") {
+                    campusCounts.barceloneta++;
+                } else if (campus === "cayey") {
+                    campusCounts.cayey++;
+                } else if (campus === "ponce") {
+                    campusCounts.ponce++;
+                } else if (campus === "yabucoa") {
+                    campusCounts.yabucoa++;
+                } else {
+                    campusCounts.sinDato++;
+                }
+            });
+
+            const participantCounts = {
+                student: 0,
+                alumni: 0,
+                community: 0,
+                noDefinido: 0
+            };
+
+            data.forEach(item => {
+                const type = item.studentType || "";
+                if (type === "student") {
+                    participantCounts.student++;
+                } else if (type === "alumni") {
+                    participantCounts.alumni++;
+                } else if (type === "community") {
+                    participantCounts.community++;
+                } else {
+                    participantCounts.noDefinido++;
+                }
+            });
+
             if (methodChart) methodChart.destroy();
             if (serviceChart) serviceChart.destroy();
             if (dateChart) dateChart.destroy();
+            if (campusChart) campusChart.destroy();
+            if (participantTypeChart) participantTypeChart.destroy();
 
             const methodCtx = document.getElementById("methodChart").getContext("2d");
             const serviceCtx = document.getElementById("serviceChart").getContext("2d");
             const dateCtx = document.getElementById("dateChart").getContext("2d");
+            const campusCtx = document.getElementById("campusChart").getContext("2d");
+            const participantTypeCtx = document.getElementById("participantTypeChart").getContext("2d");
 
             methodChart = new Chart(methodCtx, {
                 type: "doughnut",
@@ -633,6 +727,128 @@
                 }
             });
 
+            campusChart = new Chart(campusCtx, {
+                type: "bar",
+                data: {
+                    labels: [
+                        "Gurabo",
+                        "Barceloneta",
+                        "Cayey",
+                        "Ponce",
+                        "Yabucoa",
+                        "Comunidad",
+                        "Sin dato"
+                    ],
+                    datasets: [{
+                        label: "Participantes",
+                        data: [
+                            campusCounts.gurabo,
+                            campusCounts.barceloneta,
+                            campusCounts.cayey,
+                            campusCounts.ponce,
+                            campusCounts.yabucoa,
+                            campusCounts.comunidad,
+                            campusCounts.sinDato
+                        ],
+                        backgroundColor: [
+                            "#c8102e",
+                            "#003366",
+                            "#16a34a",
+                            "#ea580c",
+                            "#7c3aed",
+                            "#0891b2",
+                            "#6b7280"
+                        ],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        datalabels: {
+                            anchor: "end",
+                            align: "top",
+                            color: "#111827",
+                            font: {
+                                weight: "bold",
+                                size: 13
+                            },
+                            formatter: (value) => value > 0 ? value : ""
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.raw} participantes`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+
+            participantTypeChart = new Chart(participantTypeCtx, {
+                type: "pie",
+                data: {
+                    labels: ["Estudiante", "Exalumno", "Comunidad", "No definido"],
+                    datasets: [{
+                        data: [
+                            participantCounts.student,
+                            participantCounts.alumni,
+                            participantCounts.community,
+                            participantCounts.noDefinido
+                        ],
+                        backgroundColor: ["#003366", "#c8102e", "#16a34a", "#6b7280"],
+                        borderWidth: 2,
+                        borderColor: "#ffffff"
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: "bottom"
+                        },
+                        datalabels: {
+                            color: "#ffffff",
+                            font: {
+                                weight: "bold",
+                                size: 13
+                            },
+                            formatter: (value, context) => {
+                                const values = context.chart.data.datasets[0].data;
+                                const total = values.reduce((a, b) => a + b, 0);
+                                if (!total || value === 0) return "";
+                                const percentage = ((value / total) * 100).toFixed(0);
+                                return `${percentage}%`;
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const values = context.dataset.data;
+                                    const total = values.reduce((a, b) => a + b, 0);
+                                    const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${value} participantes (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
             dateChart = new Chart(dateCtx, {
                 type: "line",
                 data: {
@@ -680,48 +896,48 @@
         }
 
         function renderAppointments(data) {
-    const tbody = document.getElementById("appointmentsTableBody");
-    const emptyMessage = document.getElementById("emptyMessage");
+            const tbody = document.getElementById("appointmentsTableBody");
+            const emptyMessage = document.getElementById("emptyMessage");
 
-    tbody.innerHTML = "";
+            tbody.innerHTML = "";
 
-    if (data.length === 0) {
-        emptyMessage.style.display = "block";
-        return;
-    }
+            if (data.length === 0) {
+                emptyMessage.style.display = "block";
+                return;
+            }
 
-    emptyMessage.style.display = "none";
+            emptyMessage.style.display = "none";
 
-    data.forEach(appointment => {
-        const row = document.createElement("tr");
+            data.forEach(appointment => {
+                const row = document.createElement("tr");
 
-        row.innerHTML = `
-            <td>${appointment.firstName || ""} ${appointment.lastName || ""}</td>
-            <td>${appointment.email || ""}</td>
-            <td>${appointment.phone || ""}</td>
-            <td>${appointment.campus || "No aplica"}</td>
-            <td>${formatDate(appointment.appointmentDate)}</td>
-            <td>${appointment.appointmentTime || ""}</td>
-            <td>${getMethodBadge(appointment.serviceMethod)}</td>
-            <td>${formatServiceType(appointment.serviceType)}</td>
-            <td>${formatParticipantType(appointment.participantType)}</td>
-            <td>
-                ${appointment.resumeUrl 
-                    ? `<a href="${appointment.resumeUrl}" target="_blank" class="resume-btn">Ver Résumé</a>`
-                    : `<span style="color:#999;">No disponible</span>`
-                }
-            </td>
-            <td>${getStatusBadge()}</td>
-            <td>
-                <button class="action-btn delete-btn" onclick="deleteAppointment('${appointment.docId}')">
-                    Eliminar
-                </button>
-            </td>
-        `;
+                row.innerHTML = `
+                    <td>${appointment.firstName || ""} ${appointment.lastName || ""}</td>
+                    <td>${appointment.email || ""}</td>
+                    <td>${appointment.phone || ""}</td>
+                    <td>${formatCampus(appointment.campus, appointment.studentType)}</td>
+                    <td>${formatDate(appointment.appointmentDate)}</td>
+                    <td>${appointment.appointmentTime || (appointment.status === "waitlist" ? "Lista de espera" : "")}</td>
+                    <td>${getMethodBadge(appointment.serviceMethod)}</td>
+                    <td>${formatServiceType(appointment.serviceType)}</td>
+                    <td>${formatStudentType(appointment.studentType)}</td>
+                    <td>
+                        ${appointment.resumeUrl
+                            ? `<a href="${appointment.resumeUrl}" target="_blank" class="resume-btn">Ver Résumé</a>`
+                            : `<span style="color:#999;">No disponible</span>`
+                        }
+                    </td>
+                    <td>${getStatusBadge(appointment.status)}</td>
+                    <td>
+                        <button class="action-btn delete-btn" onclick="deleteAppointment('${appointment.docId}')">
+                            Eliminar
+                        </button>
+                    </td>
+                `;
 
-        tbody.appendChild(row);
-    });
-}
+                tbody.appendChild(row);
+            });
+        }
 
         function getFilteredAppointments() {
             const search = document.getElementById("searchInput").value.toLowerCase();
@@ -768,46 +984,46 @@
             }
 
             const headers = [
-    "Nombre",
-    "Apellido",
-    "Email",
-    "Telefono",
-    "Pueblo",
-    "Tipo Participante",
-    "Tipo Estudiante",
-    "Recinto/Centro",
-    "ID Estudiante",
-    "Concentracion",
-    "Servicio",
-    "Metodo de Servicio",
-    "Fecha",
-    "Hora",
-    "Enlace Resume",
-    "Descripcion",
-    "Estado",
-    "Fecha Creacion"
-];
+                "Nombre",
+                "Apellido",
+                "Email",
+                "Telefono",
+                "Pueblo",
+                "Tipo Participante Interno",
+                "Tipo Participante",
+                "Recinto/Centro",
+                "ID Estudiante",
+                "Concentracion",
+                "Servicio",
+                "Metodo de Servicio",
+                "Fecha",
+                "Hora",
+                "Enlace Resume",
+                "Descripcion",
+                "Estado",
+                "Fecha Creacion"
+            ];
 
             const rows = data.map(item => [
-    item.firstName || "",
-    item.lastName || "",
-    item.email || "",
-    item.phone || "",
-    item.city || "",
-    item.participantType || "",
-    item.studentType || "",
-    item.campus || "",
-    item.studentId || "",
-    item.concentration || "",
-    formatServiceType(item.serviceType || ""),
-    item.serviceMethod || "",
-    item.appointmentDate || "",
-    item.appointmentTime || "",
-    item.resumeUrl || "",
-    (item.description || "").replace(/\n/g, " "),
-    item.status || "",
-    formatCreatedAt(item.createdAt)
-]);
+                item.firstName || "",
+                item.lastName || "",
+                item.email || "",
+                item.phone || "",
+                item.city || "",
+                formatParticipantType(item.participantType || ""),
+                formatStudentType(item.studentType || ""),
+                formatCampus(item.campus || "", item.studentType || ""),
+                item.studentId || "",
+                item.concentration || "",
+                formatServiceType(item.serviceType || ""),
+                item.serviceMethod || "",
+                item.appointmentDate || "",
+                item.appointmentTime || "",
+                item.resumeUrl || "",
+                (item.description || "").replace(/\n/g, " "),
+                item.status || "",
+                formatCreatedAt(item.createdAt)
+            ]);
 
             let csvContent = "\uFEFF";
             csvContent += headers.join(",") + "\n";
