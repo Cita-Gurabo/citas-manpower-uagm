@@ -240,7 +240,20 @@
         .delete-btn:hover {
             background: #8b0b1f;
         }
+.resume-btn {
+    background: #003366;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-block;
+}
 
+.resume-btn:hover {
+    background: #002244;
+}
         @media (max-width: 900px) {
             .stats-cards {
                 grid-template-columns: 1fr;
@@ -373,18 +386,19 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Nombre</th>
-                            <th>Email</th>
-                            <th>Teléfono</th>
-                            <th>Recinto / Centro</th>
-                            <th>Fecha</th>
-                            <th>Hora</th>
-                            <th>Método</th>
-                            <th>Servicio</th>
-                            <th>Participante</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
+    <th>Nombre</th>
+    <th>Email</th>
+    <th>Teléfono</th>
+    <th>Recinto / Centro</th>
+    <th>Fecha</th>
+    <th>Hora</th>
+    <th>Método</th>
+    <th>Servicio</th>
+    <th>Participante</th>
+    <th>Résumé</th>
+    <th>Estado</th>
+    <th>Acciones</th>
+</tr>
                     </thead>
                     <tbody id="appointmentsTableBody"></tbody>
                 </table>
@@ -666,42 +680,48 @@
         }
 
         function renderAppointments(data) {
-            const tbody = document.getElementById("appointmentsTableBody");
-            const emptyMessage = document.getElementById("emptyMessage");
+    const tbody = document.getElementById("appointmentsTableBody");
+    const emptyMessage = document.getElementById("emptyMessage");
 
-            tbody.innerHTML = "";
+    tbody.innerHTML = "";
 
-            if (data.length === 0) {
-                emptyMessage.style.display = "block";
-                return;
-            }
+    if (data.length === 0) {
+        emptyMessage.style.display = "block";
+        return;
+    }
 
-            emptyMessage.style.display = "none";
+    emptyMessage.style.display = "none";
 
-            data.forEach(appointment => {
-                const row = document.createElement("tr");
+    data.forEach(appointment => {
+        const row = document.createElement("tr");
 
-                row.innerHTML = `
-                    <td>${appointment.firstName || ""} ${appointment.lastName || ""}</td>
-                    <td>${appointment.email || ""}</td>
-                    <td>${appointment.phone || ""}</td>
-                    <td>${appointment.campus || "No aplica"}</td>
-                    <td>${formatDate(appointment.appointmentDate)}</td>
-                    <td>${appointment.appointmentTime || ""}</td>
-                    <td>${getMethodBadge(appointment.serviceMethod)}</td>
-                    <td>${formatServiceType(appointment.serviceType)}</td>
-                    <td>${formatParticipantType(appointment.participantType)}</td>
-                    <td>${getStatusBadge()}</td>
-                    <td>
-                        <button class="action-btn delete-btn" onclick="deleteAppointment('${appointment.docId}')">
-                            Eliminar
-                        </button>
-                    </td>
-                `;
+        row.innerHTML = `
+            <td>${appointment.firstName || ""} ${appointment.lastName || ""}</td>
+            <td>${appointment.email || ""}</td>
+            <td>${appointment.phone || ""}</td>
+            <td>${appointment.campus || "No aplica"}</td>
+            <td>${formatDate(appointment.appointmentDate)}</td>
+            <td>${appointment.appointmentTime || ""}</td>
+            <td>${getMethodBadge(appointment.serviceMethod)}</td>
+            <td>${formatServiceType(appointment.serviceType)}</td>
+            <td>${formatParticipantType(appointment.participantType)}</td>
+            <td>
+                ${appointment.resumeUrl 
+                    ? `<a href="${appointment.resumeUrl}" target="_blank" class="resume-btn">Ver Résumé</a>`
+                    : `<span style="color:#999;">No disponible</span>`
+                }
+            </td>
+            <td>${getStatusBadge()}</td>
+            <td>
+                <button class="action-btn delete-btn" onclick="deleteAppointment('${appointment.docId}')">
+                    Eliminar
+                </button>
+            </td>
+        `;
 
-                tbody.appendChild(row);
-            });
-        }
+        tbody.appendChild(row);
+    });
+}
 
         function getFilteredAppointments() {
             const search = document.getElementById("searchInput").value.toLowerCase();
@@ -748,44 +768,46 @@
             }
 
             const headers = [
-                "Nombre",
-                "Apellido",
-                "Email",
-                "Telefono",
-                "Pueblo",
-                "Tipo Participante",
-                "Tipo Estudiante",
-                "Recinto/Centro",
-                "ID Estudiante",
-                "Concentracion",
-                "Servicio",
-                "Metodo de Servicio",
-                "Fecha",
-                "Hora",
-                "Descripcion",
-                "Estado",
-                "Fecha Creacion"
-            ];
+    "Nombre",
+    "Apellido",
+    "Email",
+    "Telefono",
+    "Pueblo",
+    "Tipo Participante",
+    "Tipo Estudiante",
+    "Recinto/Centro",
+    "ID Estudiante",
+    "Concentracion",
+    "Servicio",
+    "Metodo de Servicio",
+    "Fecha",
+    "Hora",
+    "Enlace Resume",
+    "Descripcion",
+    "Estado",
+    "Fecha Creacion"
+];
 
             const rows = data.map(item => [
-                item.firstName || "",
-                item.lastName || "",
-                item.email || "",
-                item.phone || "",
-                item.city || "",
-                item.participantType || "",
-                item.studentType || "",
-                item.campus || "",
-                item.studentId || "",
-                item.concentration || "",
-                formatServiceType(item.serviceType || ""),
-                item.serviceMethod || "",
-                item.appointmentDate || "",
-                item.appointmentTime || "",
-                (item.description || "").replace(/\n/g, " "),
-                item.status || "",
-                formatCreatedAt(item.createdAt)
-            ]);
+    item.firstName || "",
+    item.lastName || "",
+    item.email || "",
+    item.phone || "",
+    item.city || "",
+    item.participantType || "",
+    item.studentType || "",
+    item.campus || "",
+    item.studentId || "",
+    item.concentration || "",
+    formatServiceType(item.serviceType || ""),
+    item.serviceMethod || "",
+    item.appointmentDate || "",
+    item.appointmentTime || "",
+    item.resumeUrl || "",
+    (item.description || "").replace(/\n/g, " "),
+    item.status || "",
+    formatCreatedAt(item.createdAt)
+]);
 
             let csvContent = "\uFEFF";
             csvContent += headers.join(",") + "\n";
