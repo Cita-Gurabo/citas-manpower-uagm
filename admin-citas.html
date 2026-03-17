@@ -511,16 +511,22 @@
         }
 
         function formatCampus(campus, studentType) {
-            if (studentType === "community") return "Comunidad";
-            const map = {
-                "gurabo": "Recinto de Gurabo",
-                "barceloneta": "Centro Universitario de Barceloneta",
-                "cayey": "Centro Universitario de Cayey",
-                "ponce": "Centro Universitario de Ponce",
-                "yabucoa": "Centro Universitario de Yabucoa"
-            };
-            return map[campus] || "No aplica";
-        }
+    if ((studentType || "").toLowerCase().trim() === "community") {
+        return "Comunidad";
+    }
+
+    const normalizedCampus = (campus || "").toLowerCase().trim();
+
+    const map = {
+        "gurabo": "Recinto de Gurabo",
+        "barceloneta": "Centro Universitario de Barceloneta",
+        "cayey": "Centro Universitario de Cayey",
+        "ponce": "Centro Universitario de Ponce",
+        "yabucoa": "Centro Universitario de Yabucoa"
+    };
+
+    return map[normalizedCampus] || "No registrado";
+}
 
         function getMethodBadge(method) {
             if (method === "Presencial") {
