@@ -912,29 +912,28 @@
                 const row = document.createElement("tr");
 
                 row.innerHTML = `
-                    <td>${appointment.firstName || ""} ${appointment.lastName || ""}</td>
-                    <td>${appointment.email || ""}</td>
-                    <td>${appointment.phone || ""}</td>
-                    <td>${formatCampus(appointment.campus, appointment.studentType)}</td>
-                    <td>${formatDate(appointment.appointmentDate)}</td>
-                    <td>${appointment.appointmentTime || (appointment.status === "waitlist" ? "Lista de espera" : "")}</td>
-                    <td>${getMethodBadge(appointment.serviceMethod)}</td>
-                    <td>${formatServiceType(appointment.serviceType)}</td>
-                    <td>${formatStudentType(appointment.studentType)}</td>
-                    <td>
-                        ${appointment.resumeUrl
-                            ? `<a href="${appointment.resumeUrl}" target="_blank" class="resume-btn">Ver Résumé</a>`
-                            : `<span style="color:#999;">No disponible</span>`
-                        }
-                    </td>
-                    <td>${getStatusBadge(appointment.status)}</td>
-                    <td>
-                        <button class="action-btn delete-btn" onclick="deleteAppointment('${appointment.docId}')">
-                            Eliminar
-                        </button>
-                    </td>
-                `;
-
+    <td>${appointment.firstName || ""} ${appointment.lastName || ""}</td>
+    <td>${appointment.email || ""}</td>
+    <td>${appointment.phone || ""}</td>
+    <td>${formatCampus(appointment.campus, appointment.studentType)}</td>
+    <td>${formatDate(appointment.appointmentDate)}</td>
+    <td>${appointment.appointmentTime || ""}</td>
+    <td>${getMethodBadge(appointment.serviceMethod)}</td>
+    <td>${formatServiceType(appointment.serviceType)}</td>
+    <td>${formatParticipantType(appointment.participantType)}</td>
+    <td>
+        ${appointment.resumeUrl 
+            ? `<a href="${appointment.resumeUrl}" target="_blank" class="resume-btn">Ver Résumé</a>`
+            : `<span style="color:#999;">No disponible</span>`
+        }
+    </td>
+    <td>${getStatusBadge()}</td>
+    <td>
+        <button class="action-btn delete-btn" onclick="deleteAppointment('${appointment.docId}')">
+            Eliminar
+        </button>
+    </td>
+`;
                 tbody.appendChild(row);
             });
         }
