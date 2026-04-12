@@ -87,14 +87,15 @@
 
 <script>
   const firebaseConfig = {
-    apiKey: "AIzaSyAHEyhKMPyoYyGAK4evC6T8KknS06u23f8",
-    authDomain: "sistema-cita-manpowergroup.firebaseapp.com",
-    projectId: "sistema-cita-manpowergroup",
-    storageBucket: "sistema-cita-manpowergroup.firebasestorage.app",
-    messagingSenderId: "284482299414",
-    appId: "1:284482299414:web:552a4ba8daac946abb7737",
-    measurementId: "G-7HJWCRZMXX"
-  };
+  apiKey: "AIzaSyAHEyhKMPyoYyGAK4evC6T8KknSO6u23f8",
+  authDomain: "sistema-cita-manpowergroup.firebaseapp.com",
+  databaseURL: "https://sistema-cita-manpowergroup-default-rtdb.firebaseio.com",
+  projectId: "sistema-cita-manpowergroup",
+  storageBucket: "sistema-cita-manpowergroup.firebasestorage.app",
+  messagingSenderId: "284482299414",
+  appId: "1:284482299414:web:552a4ba8daac946abb7737",
+  measurementId: "G-7HJWCRZMXX"
+};
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
