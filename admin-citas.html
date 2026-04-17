@@ -485,7 +485,7 @@ auth.onAuthStateChanged(user => {
     loadAppointments();
 });
 
-function logout() {
+/*function logout() {
     document.body.style.display = "none";
 
     firebase.auth().signOut().then(() => {
@@ -494,7 +494,7 @@ function logout() {
         document.body.style.display = "block";
         alert("Error al cerrar sesión: " + error.message);
     });
-}
+}*/
         function formatDate(dateString) {
             if (!dateString) return "Lista de espera";
 
