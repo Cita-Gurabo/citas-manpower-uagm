@@ -320,7 +320,7 @@
                 ">
                     <i class="fas fa-file-csv"></i> Exportar a Excel
                 </button>
-<!--
+
                 <button onclick="logout()" style="
                     background: #c8102e;
                     color: white;
@@ -331,7 +331,7 @@
                     font-weight: bold;
                 ">
                     🔒 Cerrar Sesión
-                </button> -->
+                </button>
             </div>
         </div>
 
@@ -426,28 +426,17 @@
        
 
         Chart.register(ChartDataLabels);
-const firebaseConfig = {
-  apiKey: "AIzaSyAHEyhKMPyoYyGAK4evC6T8KknSO6u23f8",
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyAHEyhKMPyoYyGAK4evC6T8KknS06u23f8",
   authDomain: "sistema-cita-manpowergroup.firebaseapp.com",
   databaseURL: "https://sistema-cita-manpowergroup-default-rtdb.firebaseio.com",
   projectId: "sistema-cita-manpowergroup",
   storageBucket: "sistema-cita-manpowergroup.firebasestorage.app",
   messagingSenderId: "284482299414",
-  appId: "1:284482299414:web:d4f8940737d4bed6bb7737",
+  appId: "1:284482299414:web:d4f894073d4bed6bb7737",
   measurementId: "G-TT6MB6Z0Q1"
 };
-        
-/** const firebaseConfig = {
-  apiKey: "AIzaSyAHEyhKMPyoYyGAK4evC6T8KknSO6u23f8",
-  authDomain: "sistema-cita-manpowergroup.firebaseapp.com",
-  databaseURL: "https://sistema-cita-manpowergroup-default-rtdb.firebaseio.com",
-  projectId: "sistema-cita-manpowergroup",
-  storageBucket: "sistema-cita-manpowergroup.firebasestorage.app",
-  messagingSenderId: "284482299414",
-  appId: "1:284482299414:web:552a4ba8daac946abb7737",
-  measurementId: "G-7HJWCRZMXX"
-};*/
-
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -485,7 +474,7 @@ auth.onAuthStateChanged(user => {
     loadAppointments();
 });
 
-/*function logout() {
+function logout() {
     document.body.style.display = "none";
 
     firebase.auth().signOut().then(() => {
@@ -494,7 +483,7 @@ auth.onAuthStateChanged(user => {
         document.body.style.display = "block";
         alert("Error al cerrar sesión: " + error.message);
     });
-}*/
+}
         function formatDate(dateString) {
             if (!dateString) return "Lista de espera";
 
@@ -1079,7 +1068,26 @@ auth.onAuthStateChanged(user => {
 
             URL.revokeObjectURL(url);
         }
+async function loadAppointments() {
+    try {
+        const snapshot = await db.collection("appointments").get();
 
+        appointments = snapshot.docs.map(doc => ({
+            docId: doc.id,
+            ...doc.data()
+        }));
+
+        console.log("Citas cargadas:", appointments);
+
+        renderAppointments(appointments);
+        updateStats(appointments);
+        renderCharts(appointments);
+
+    } catch (error) {
+        console.error("Error cargando citas:", error);
+        alert("Ocurrió un error al cargar las citas. Verifique la consola.");
+    }
+}
         async function deleteAppointment(docId) {
             const confirmDelete = confirm("¿Está seguro de que desea eliminar esta cita? Esta acción no se puede deshacer.");
 
@@ -1104,4 +1112,4 @@ auth.onAuthStateChanged(user => {
         </script>
 
 </body>
-</html>
+</html>   
