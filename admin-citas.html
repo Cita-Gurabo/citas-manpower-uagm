@@ -422,7 +422,10 @@
         </div>
     </div>
 
-    <script>
+  <script>
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("ERROR: " + message + " en línea " + lineno);
+};
        
 
         Chart.register(ChartDataLabels);
