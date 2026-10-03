@@ -579,9 +579,9 @@ Centro&nbsp;de&nbsp;Yabucoa</p>
 
                 <div class="form-row">
                     <div class="form-group" id="appointmentDateGroup">
-                        <label>Fecha (Solo Miércoles) <span class="required">*</span></label>
+                        <label>Fecha <span class="required">*</span></label>
                         <select id="appointmentDate">
-                            <option value="">Seleccionar miércoles...</option>
+                            <option value="">Seleccionar fecha...</option>
                         </select>
                     </div>
                     <div class="form-group" id="appointmentTimeGroup">
@@ -715,15 +715,27 @@ Centro&nbsp;de&nbsp;Yabucoa</p>
             const dateSelect = document.getElementById('appointmentDate');
             if (!dateSelect) return;
 
-            dateSelect.innerHTML = '<option value="">Seleccionar miércoles...</option>';
+            dateSelect.innerHTML = '<option value="">Seleccionar fecha...</option>';
 
+            // HISTORIAL: no borrar fechas viejas, añadir las nuevas al final.
+            // Las que ya pasaron se ocultan solas.
             const specificDates = [
                 '2026-03-25',
                 '2026-04-22',
-                '2026-05-13'
+                '2026-05-13',
+                '2026-10-08',
+                '2026-10-29',
+                '2026-11-18'
             ];
 
-            specificDates.forEach(date => {
+            const hoy = new Date();
+            const hoyStr = hoy.getFullYear() + '-' +
+                String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
+                String(hoy.getDate()).padStart(2, '0');
+
+            const fechasVisibles = specificDates.filter(date => date >= hoyStr);
+
+            fechasVisibles.forEach(date => {
                 const option = document.createElement('option');
                 option.value = date;
                 const dateObj = new Date(date + 'T12:00:00');
@@ -737,7 +749,7 @@ Centro&nbsp;de&nbsp;Yabucoa</p>
             });
         }
 
-        function enableWaitlistMode() {
+       function enableWaitlistMode() {
             document.getElementById('appointmentDateGroup').style.display = 'none';
             document.getElementById('appointmentTimeGroup').style.display = 'none';
             document.getElementById('appointmentDate').removeAttribute('required');
@@ -837,10 +849,11 @@ Centro&nbsp;de&nbsp;Yabucoa</p>
                 console.error('❌ Error cargando modo desde Firebase:', error);
                 disableWaitlistMode();
                 generateWednesdayDates();
-            }
-        }
-
-        async function generateTimeSlots() {
+             const allTimeSlots = [
+                '09:00','09:30','10:00','10:30','11:00','11:30',
+                '13:00','13:30'
+            ];
+            ];
             const dateSelect = document.getElementById('appointmentDate');
             const timeSelect = document.getElementById('appointmentTime');
             if (!dateSelect || !timeSelect) return;
@@ -850,8 +863,9 @@ Centro&nbsp;de&nbsp;Yabucoa</p>
             if (!selectedDate) return;
 
             const allTimeSlots = [
+                ' const allTimeSlots = [
                 '09:00','09:30','10:00','10:30','11:00','11:30',
-                '13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30'
+                '13:00','13:30'
             ];
 
             timeSelect.innerHTML = '<option value="">Seleccionar horario...</option>';
